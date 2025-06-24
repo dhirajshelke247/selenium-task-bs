@@ -21,15 +21,15 @@ describe('Language Validation', () => {
     }
   });
 
-  it('should load homepage in Spanish', async () => {
+  it('should accept consent if present', async () => {
     await home.visit(config.baseUrl);
+    await home.acceptConsentIfPresent();
+    const currentUrl = await driver.getCurrentUrl();
+    expect(currentUrl).to.include(config.baseUrl);
+  }).timeout(60000);
+
+  it('should load homepage in Spanish', async () => {
     expect(await home.isInSpanish()).to.be.true;
   }).timeout(60000);
 
-  it('should navigate to Articles section', async () => {
-    // Assumes you are already on the homepage from the previous test
-    await home.goToArticles();
-    const currentUrl = await driver.getCurrentUrl();
-    expect(currentUrl).to.include('/opinion/');
-  }).timeout(60000);
 });

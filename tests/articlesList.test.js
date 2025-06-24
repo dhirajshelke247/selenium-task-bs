@@ -24,25 +24,16 @@ describe('Opinion Articles List', () => {
     }
   });
 
-  it('should get top 10 articles from the Opinion section', async function () {
+  it('should navigate to the Opinion section', async function() { 
     this.timeout(60000);
     await home.visit(config.baseUrl);
-
-    // Wait for the consent button to be visible and clickable
-    try {
-      const agreeButton = await driver.wait(
-        until.elementIsVisible(
-          await driver.wait(until.elementLocated(By.id('didomi-notice-agree-button')), 10000)
-        ),
-        10000
-      );
-      await agreeButton.click();
-    } catch (e) {
-      // If the button is not found or not interactable, continue (maybe already accepted)
-      console.warn('Consent button not found or not interactable:', e.message);
-    }
-
+    await home.acceptConsentIfPresent();
     await home.goToArticles();
+  });
+
+
+  it('should get top 10 articles from the Opinion section with translations', async function () {
+    this.timeout(60000);
     const articles = await opinionPage.getTop10Articles();
     expect(articles).to.be.an('array').that.has.lengthOf.at.most(10);
     articles.forEach(article => {

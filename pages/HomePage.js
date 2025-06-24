@@ -3,10 +3,13 @@ import BasePage from './BasePage.js';
 
 class HomePage extends BasePage {
   get languageIndicator() { 
-    return this.driver.findElement(By.xpath('//li[@id="edition_head" and @data-edition="el-pais"]//span[text()="España"]')); 
+    return By.xpath('//li[@id="edition_head" and @data-edition="el-pais"]//span[text()="España"]'); 
   }
   get articlesMenu() { 
-    return this.driver.findElement(By.css('a[href="https://elpais.com/opinion/"]')); 
+    return By.css('a[href*="/opinion/"]'); 
+  }
+  get consentButton() {
+    return By.id('didomi-notice-agree-button');
   }
 
   async isInSpanish() {
@@ -18,8 +21,25 @@ class HomePage extends BasePage {
     return lang.toLowerCase().startsWith('es');
   }
 
+
+  async acceptConsentIfPresent() {
+    try {
+      const agreeButton = await this.driver.wait(
+        until.elementIsVisible(
+          await this.driver.wait(until.elementLocated(this.consentButton), 10000)
+        ),
+        10000
+      );
+      await agreeButton.click();
+    } catch (e) {
+      // If the button is not found or not interactable, continue (maybe already accepted)
+      console.warn('Consent button not found or not interactable:', e.message);
+    }
+  }
+
   async goToArticles() {
-    await (await this.articlesMenu).click();
+    const articlesMenuElem = await this.driver.findElement(this.articlesMenu);
+    await articlesMenuElem.click();
   }
 }
 

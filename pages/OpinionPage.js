@@ -2,47 +2,8 @@ import { By, until } from 'selenium-webdriver';
 import BasePage from './BasePage.js';
 import fs from 'fs';
 import path from 'path';
-import https from 'https';
-import http from 'http';
-import axios from 'axios';
-
-function downloadImage(url, dest) {
-  return new Promise((resolve, reject) => {
-    const mod = url.startsWith('https') ? https : http;
-    const file = fs.createWriteStream(dest);
-    mod.get(url, response => {
-      if (response.statusCode !== 200) {
-        reject(new Error(`Failed to get '${url}' (${response.statusCode})`));
-        return;
-      }
-      response.pipe(file);
-      file.on('finish', () => file.close(resolve));
-    }).on('error', err => {
-      fs.unlink(dest, () => reject(err));
-    });
-  });
-}
-
-async function translateText(text, to = 'en') {
-  const url = 'https://google-translate113.p.rapidapi.com/api/v1/translator/text';
-  const headers = {
-    'content-type': 'application/json',
-    'x-rapidapi-host': 'google-translate113.p.rapidapi.com',
-    'x-rapidapi-key': '27b494050fmsha4e52d25c7b5fb0p1c69eajsn5a1efb82fd3a'
-  };
-  const data = {
-    from: 'auto',
-    to,
-    text
-  };
-  try {
-    const response = await axios.post(url, data, { headers });
-    return response.data.trans || text;
-  } catch (err) {
-    console.error('Translation error:', err.message);
-    return text;
-  }
-}
+import { downloadImage } from '../utils/downloadImage.js';
+import { translateText } from '../utils/translate.js';
 
 class OpinionPage extends BasePage {
   get articleElements() {
@@ -78,20 +39,20 @@ class OpinionPage extends BasePage {
 
       // Try to get the first <img> in the article
       let imgSrc = null;
+      let imgPath = null;
       try {
         const imgElem = await article.findElement(By.css('img'));
         imgSrc = await imgElem.getAttribute('src');
         if (imgSrc) {
-          // Download the image
-          const imgExt = path.extname(new URL(imgSrc).pathname) || '.jpg';
-          const imgPath = path.join(downloadDir, `article_${i + 1}${imgExt}`);
-          await downloadImage(imgSrc, imgPath);
+          const ext = path.extname(new URL(imgSrc).pathname) || '.jpg';
+          const filename = `article_${i + 1}${ext}`;
+          imgPath = await downloadImage(imgSrc, downloadDir, filename);
         }
       } catch (e) {
         imgSrc = null;
       }
 
-      results.push({ title, translatedTitle, url, summary, imgSrc });
+      results.push({ title, translatedTitle, url, summary, imgSrc, imgPath });
     }
 
     // Count repeated words in translated headers
@@ -99,7 +60,7 @@ class OpinionPage extends BasePage {
     translatedTitles.forEach(header => {
       header
         .toLowerCase()
-        .replace(/[^\w\s]/g, '') // Remove punctuation
+        .replace(/[^\w\s]/g, '')
         .split(/\s+/)
         .forEach(word => {
           if (word.length > 0) {
