@@ -1,8 +1,8 @@
-import { Builder, By, until } from 'selenium-webdriver';
 import { expect } from 'chai';
 import HomePage from '../pages/HomePage.js';
 import OpinionPage from '../pages/OpinionPage.js';
 import config from '../config/config.js';
+import createBrowserStackDriver from '../utils/bsDriver.js';
 
 describe('Opinion Articles List', () => {
   let driver;
@@ -11,7 +11,7 @@ describe('Opinion Articles List', () => {
 
   before(async function () {
     this.timeout(30000);
-    driver = await new Builder().forBrowser(config.browser).build();
+    driver = await createBrowserStackDriver();
     await driver.manage().window().maximize();
     home = new HomePage(driver);
     opinionPage = new OpinionPage(driver);

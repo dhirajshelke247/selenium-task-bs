@@ -72,7 +72,10 @@ class OpinionPage extends BasePage {
     Object.entries(wordCounts)
       .filter(([_, count]) => count > 2)
       .forEach(([word, count]) => {
-        console.log(`Repeated word: "${word}" - ${count} times`);
+        console.log(
+        `Repeated word: "${word}" - ${count} times\n` +
+        `${'-'.repeat(60)}`
+      );
       });
 
     return results;
