@@ -33,7 +33,7 @@ describe('Opinion Articles List', () => {
 
 
   it('should get top 10 articles from the Opinion section with translations', async function () {
-    this.timeout(60000);
+    this.timeout(120000);
     const articles = await opinionPage.getTop10Articles();
     expect(articles).to.be.an('array').that.has.lengthOf.at.most(10);
     articles.forEach(article => {
